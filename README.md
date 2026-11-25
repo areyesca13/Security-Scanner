@@ -21,7 +21,7 @@ It does not open or execute any file it scans. It only reads bytes to compute ha
 ## Install
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/areyesca13/Security-Scanner.git
 cd Security-Scanner
 pip install .              # optional: adds a `security-scanner` command
 ```
@@ -174,3 +174,7 @@ tests/            unit and end-to-end tests
 ## Limitations
 
 This is a triage aid, not an antivirus. It goes by names and known hashes, not file contents. A renamed executable such as `photo.jpg`, or malware whose hash isn't on your list, will not be flagged. Use it to decide which files a person reviews first, not as proof that a file is safe.
+
+## License
+
+[MIT](LICENSE)
