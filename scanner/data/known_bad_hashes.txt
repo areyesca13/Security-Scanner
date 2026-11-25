@@ -1,0 +1,6 @@
+# Known-bad SHA256 hashes
+# Format: <sha256> <label>
+# Add hashes from your threat intel feeds or past incidents here.
+
+# EICAR antivirus test file (harmless, used to verify detection works)
+275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f EICAR-Test-File

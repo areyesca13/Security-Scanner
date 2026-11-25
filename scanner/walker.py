@@ -6,6 +6,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Iterator
 
+from .findings import Finding
+
 
 @dataclass
 class FileRecord:
@@ -13,7 +15,8 @@ class FileRecord:
 
     path: Path
     size: int
-    findings: list = field(default_factory=list)
+    sha256: str | None = None
+    findings: list[Finding] = field(default_factory=list)
 
     @property
     def name(self) -> str:
