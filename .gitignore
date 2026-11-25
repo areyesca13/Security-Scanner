@@ -1,0 +1,19 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.coverage
+htmlcov/
+dist/
+build/
+
+# Scan output
+reports/
+*.report.json
+*.report.csv
+
+# Never commit real samples
+samples/
+quarantine/
