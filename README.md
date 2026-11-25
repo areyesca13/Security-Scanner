@@ -29,3 +29,33 @@ Every file is hashed with SHA256, reading 1 MiB at a time so large files stay ou
 # comments are allowed
 <sha256> <label>
 ```
+
+### Suspicious extensions
+
+The file's final extension is matched case-insensitively against the categories below. The rules live in [scanner/extensions.py](scanner/extensions.py).
+
+| Category | Weight | Examples |
+|---|---|---|
+| executable | 40 | `.exe` `.scr` `.com` `.pif` `.msi` `.dll` |
+| script | 40 | `.bat` `.ps1` `.vbs` `.js` `.hta` `.jar` |
+| shortcut-or-config | 35 | `.lnk` `.url` `.reg` `.inf` |
+| macro-enabled-document | 30 | `.docm` `.xlsm` `.pptm` |
+| disk-image | 25 | `.iso` `.img` `.vhd` |
+| archive | 10 | `.zip` `.rar` `.7z` |
+
+Windows silently drops trailing dots and spaces from filenames, so a file named `setup.exe. ` runs as `setup.exe`. The scanner treats it as `.exe` and also flags it with `EXT_TRAILING_CHARS`.
+
+### Misleading names
+
+Rules live in [scanner/double_ext.py](scanner/double_ext.py).
+
+| Rule | Weight | Example | Why it matters |
+|---|---|---|---|
+| `NAME_BIDI_OVERRIDE` | 60 | `invoice‮fdp.exe` | Displays as `invoiceexe.pdf` |
+| `NAME_DOUBLE_EXTENSION` | 45 | `invoice.pdf.exe` | Windows hides known extensions, so it shows as `invoice.pdf` |
+| `NAME_WHITESPACE_PADDING` | 25 | `invoice.pdf         .exe` | Pushes the real extension out of view |
+| `NAME_DOUBLE_EXTENSION_ARCHIVE` | 15 | `report.pdf.zip` | Lower risk on its own, but often wraps a payload |
+
+A double extension is flagged only when the second-to-last extension is a commonly trusted type (document, image, media or web page) and the final one is risky. Normal names like `archive.tar.gz`, `jquery.min.js` and `setup-1.2.3.exe` are not flagged by this rule.
+
+Hidden characters in filenames are printed as escape codes, such as `‮`, so the terminal output can't be visually spoofed.

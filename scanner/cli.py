@@ -7,8 +7,22 @@ import sys
 from pathlib import Path
 
 from . import __version__
-from .hashing import DEFAULT_HASH_LIST, check_hash, load_hash_list, sha256_file
+from .double_ext import BIDI_CONTROL_CHARS
+from .engine import scan_record
+from .hashing import DEFAULT_HASH_LIST, load_hash_list
 from .walker import iter_files
+
+
+def safe_display(path: Path) -> str:
+    """Render a path for the terminal with hidden/control characters escaped.
+
+    Printing a raw right-to-left override would reverse the text on screen and
+    hide the very trick being reported, so show it as ``\\u202e`` instead.
+    """
+    return "".join(
+        f"\\u{ord(ch):04x}" if ch in BIDI_CONTROL_CHARS or not ch.isprintable() else ch
+        for ch in str(path)
+    )
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -49,14 +63,13 @@ def main(argv: list[str] | None = None) -> int:
     flagged = 0
     for record in records:
         try:
-            record.sha256 = sha256_file(record.path)
+            scan_record(record, known_bad)
         except OSError as exc:
-            print(f"warning: could not read {record.path}: {exc}", file=sys.stderr)
+            print(f"warning: could not read {safe_display(record.path)}: {exc}", file=sys.stderr)
             continue
-        record.findings.extend(check_hash(record.sha256, known_bad))
 
         marker = "FLAG" if record.findings else "ok  "
-        print(f"[{marker}] {record.sha256[:16]}  {record.path}")
+        print(f"[{marker}] {record.sha256[:16]}  {safe_display(record.path)}")
         for finding in record.findings:
             print(f"         - {finding.rule_id}: {finding.message}")
         flagged += bool(record.findings)
