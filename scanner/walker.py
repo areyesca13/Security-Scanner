@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Iterator
 
 from .findings import Finding
+from .scoring import RiskAssessment
 
 
 @dataclass
@@ -17,6 +18,7 @@ class FileRecord:
     size: int
     sha256: str | None = None
     findings: list[Finding] = field(default_factory=list)
+    risk: RiskAssessment | None = None
 
     @property
     def name(self) -> str:

@@ -59,8 +59,7 @@ def check_double_extension(name: str) -> list[Finding]:
         findings.append(
             Finding(
                 rule_id="NAME_BIDI_OVERRIDE",
-                message=f"filename contains hidden text-direction characters ({', '.join(bidi)})"
-                " that can make it display a fake extension",
+                message=f"hidden {', '.join(bidi)} character can fake the visible extension",
                 weight=60,
             )
         )
