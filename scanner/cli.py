@@ -8,9 +8,10 @@ from collections import Counter
 from pathlib import Path
 
 from . import __version__
-from .double_ext import BIDI_CONTROL_CHARS
+from .double_ext import escape_hidden
 from .engine import scan_record
 from .hashing import DEFAULT_HASH_LIST, load_hash_list
+from .reports import write_csv, write_json
 from .scoring import Severity
 from .walker import FileRecord, iter_files
 
@@ -18,15 +19,8 @@ SEVERITY_CHOICES = [s.name.lower() for s in Severity if s is not Severity.CLEAN]
 
 
 def safe_display(path: Path | str) -> str:
-    """Render a path for the terminal with hidden/control characters escaped.
-
-    Printing a raw right-to-left override would reverse the text on screen and
-    hide the very trick being reported, so show it as ``\\u202e`` instead.
-    """
-    return "".join(
-        f"\\u{ord(ch):04x}" if ch in BIDI_CONTROL_CHARS or not ch.isprintable() else ch
-        for ch in str(path)
-    )
+    """Render a path for the terminal with hidden/control characters escaped."""
+    return escape_hidden(str(path))
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -56,6 +50,18 @@ def build_parser() -> argparse.ArgumentParser:
         "-v", "--verbose",
         action="store_true",
         help="Show every finding, full hashes, and clean files",
+    )
+    parser.add_argument(
+        "--json",
+        type=Path,
+        metavar="PATH",
+        help="Also write a full JSON report (all files, including clean ones)",
+    )
+    parser.add_argument(
+        "--csv",
+        type=Path,
+        metavar="PATH",
+        help="Also write a CSV report for spreadsheets or ticket imports",
     )
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     return parser
@@ -114,6 +120,18 @@ def main(argv: list[str] | None = None) -> int:
 
     if not reported:
         print(f"Nothing at or above '{args.min_severity}' severity.")
+
+    try:
+        if args.json:
+            write_json(scanned, args.target, args.json)
+            print(f"JSON report written to {args.json}")
+        if args.csv:
+            write_csv(scanned, args.csv)
+            print(f"CSV report written to {args.csv}")
+    except OSError as exc:
+        print(f"error: could not write report: {exc}", file=sys.stderr)
+        return 2
+
     return 1 if reported else 0
 
 

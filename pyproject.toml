@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "security-scanner"
+dynamic = ["version"]
+description = "Rule-based triage for downloaded files: hash matching, risky extensions, disguised filenames, and risk summaries."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.scripts]
+security-scanner = "scanner.cli:main"
+
+[tool.setuptools]
+packages = ["scanner"]
+
+[tool.setuptools.dynamic]
+version = { attr = "scanner.__version__" }
+
+[tool.setuptools.package-data]
+scanner = ["data/*.txt"]

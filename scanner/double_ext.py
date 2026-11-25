@@ -3,7 +3,7 @@
 Covers three common tricks:
   * double extensions:     ``invoice.pdf.exe`` (Windows hides the ``.exe`` by default)
   * whitespace padding:    ``invoice.pdf                  .exe``
-  * bidi override chars:   ``invoice‮fdp.exe`` displays as ``invoiceexe.pdf``
+  * bidi override chars:   ``invoice\u202efdp.exe`` displays as ``invoiceexe.pdf``
 """
 
 from __future__ import annotations
@@ -23,18 +23,30 @@ DECOY_EXTENSIONS = frozenset({
 
 # Unicode characters that reorder or hide text when a filename is displayed.
 BIDI_CONTROL_CHARS = {
-    "‪": "LEFT-TO-RIGHT EMBEDDING",
-    "‫": "RIGHT-TO-LEFT EMBEDDING",
-    "‬": "POP DIRECTIONAL FORMATTING",
-    "‭": "LEFT-TO-RIGHT OVERRIDE",
-    "‮": "RIGHT-TO-LEFT OVERRIDE",
-    "⁦": "LEFT-TO-RIGHT ISOLATE",
-    "⁧": "RIGHT-TO-LEFT ISOLATE",
-    "⁨": "FIRST STRONG ISOLATE",
-    "⁩": "POP DIRECTIONAL ISOLATE",
-    "‎": "LEFT-TO-RIGHT MARK",
-    "‏": "RIGHT-TO-LEFT MARK",
+    "\u202a": "LEFT-TO-RIGHT EMBEDDING",
+    "\u202b": "RIGHT-TO-LEFT EMBEDDING",
+    "\u202c": "POP DIRECTIONAL FORMATTING",
+    "\u202d": "LEFT-TO-RIGHT OVERRIDE",
+    "\u202e": "RIGHT-TO-LEFT OVERRIDE",
+    "\u2066": "LEFT-TO-RIGHT ISOLATE",
+    "\u2067": "RIGHT-TO-LEFT ISOLATE",
+    "\u2068": "FIRST STRONG ISOLATE",
+    "\u2069": "POP DIRECTIONAL ISOLATE",
+    "\u200e": "LEFT-TO-RIGHT MARK",
+    "\u200f": "RIGHT-TO-LEFT MARK",
 }
+
+def escape_hidden(text: str) -> str:
+    """Show hidden direction and control characters as visible ``\\uXXXX`` escapes.
+
+    Used anywhere a filename is shown to a person (terminal, spreadsheet), so a
+    right-to-left override can't reverse the text and hide the real extension.
+    """
+    return "".join(
+        f"\\u{ord(ch):04x}" if ch in BIDI_CONTROL_CHARS or not ch.isprintable() else ch
+        for ch in text
+    )
+
 
 # Three or more spaces/tabs right before the final dot.
 _PADDING_RE = re.compile(r"[ \t]{3,}\.[^.]+$")
